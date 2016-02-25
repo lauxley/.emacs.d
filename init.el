@@ -1,3 +1,32 @@
+;;; install required packages
+(require 'package)
+(add-to-list 'package-archives
+             '("marmalade" . "http://marmalade-repo.org/packages/") t)
+(add-to-list 'package-archives
+             '("melpa" . "http://melpa.org/packages/") t)
+(add-to-list 'package-archives 
+             '("org" . "http://orgmode.org/elpa/") t)
+(package-initialize)
+
+(when (not package-archive-contents)
+  (package-refresh-contents))
+
+(defvar packages-list '(js2-mode
+                        ; json-mode
+                        ; web-mode
+                        django-mode
+                        flycheck
+                        auto-complete
+                        markdown-mode
+                        yasnippet
+                        yafolding)
+  "A list of packages to install at launch (if needed).")
+
+(dolist (p packages-list)
+  (when (not (package-installed-p p))
+    (package-install p)))
+
+;;; 
 (custom-set-variables
   ;; custom-set-variables was added by Custom.
   ;; If you edit it by hand, you could mess it up, so be careful.
@@ -25,6 +54,10 @@
 (setq display-warning-minimum-level 'error
         log-warning-minimal-level 'info)
 (setq default-tab-width 4)
+(setq fill-column 80)
+(setq-default truncate-lines 1)
+
+(setq python-shell-interpreter "/usr/local/lib/python3.4")
 
 (put 'upcase-region 'disabled nil)
 
@@ -46,6 +79,8 @@
 (font-lock-mode t)
  ; Make all "yes or no" prompts show "y or n" instead
 (fset 'yes-or-no-p 'y-or-n-p)
+(setq inhibit-splash-screen t)
+(setq-default indent-tabs-mode nil)
 
 (global-set-key [home] 'beginning-of-line)
 (global-set-key [end] 'end-of-line)
@@ -55,11 +90,13 @@
 ; turn off the tool and menu bars
 (tool-bar-mode -1)
 (menu-bar-mode -1)
+;(set-frame-font "Ubuntu Mono-8")
 
 (prefer-coding-system 'mule-utf-8)
 
 (require 'ido)
 (ido-mode t)
+(add-to-list 'ido-ignore-files "\\.pyc")
 
 (add-to-list 'load-path
              "~/.emacs.d/plugins")
@@ -82,59 +119,40 @@
 (yas/load-directory "~/.emacs.d/plugins/snippets")
 
 ;;;;;;;;;;;;;;;;;;;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;(add-to-list 'load-path
-;              "~/.emacs.d/plugins/django-mode")
+(add-to-list 'load-path
+              "~/.emacs.d/plugins/django-mode")
 ;(require 'django-html-mode)
-;(require 'django-mode)
-;(yas/load-directory "~/.emacs.d/plugins/django-mode/snippets")
+(require 'django-mode)
+(yas/load-directory "~/.emacs.d/plugins/django-mode/snippets")
 ;(add-to-list 'auto-mode-alist '("\\.html$" . django-html-mode))
 
-;(add-hook 'html-helper-mode-hook
-;          '(lambda ()
-;             (yas/minor-mode-on))) 
+(add-hook 'html-helper-mode-hook
+          '(lambda ()
+             (yas/minor-mode-on))) 
 
+; (require 'json-mode)
 
 ;(load-library "~/.emacs.d/init_python")
-
-(add-to-list 'load-path
-              "~/.emacs.d/plugins/web-mode")
-(require 'web-mode)
-(add-to-list 'auto-mode-alist '("\\.html$" . web-mode))
-
-(when (load "flymake" t)
- (defun flymake-pylint-init ()
-   (let* ((temp-file (flymake-init-create-temp-buffer-copy
-                      'flymake-create-temp-inplace))
-          (local-file (file-relative-name
-                       temp-file
-                       (file-name-directory buffer-file-name))))
-         (list "pycheckers" (list local-file))
-     ))
-
- (add-to-list 'flymake-allowed-file-name-masks
-              '("\\.py\\'" flymake-pylint-init))
-
- (defun flymake-xml-init () 
-   (list "xmlstarlet" (list "val" "-e" (flymake-init-create-temp-buffer-copy 'flymake-create-temp-copy)))
-   )
-)
-
-(delete '("\\.html?\\'" flymake-xml-init) flymake-allowed-file-name-masks)
-
-(defun my-flymake-show-help ()
-  (when (get-char-property (point) 'flymake-overlay)
-    (let ((help (get-char-property (point) 'help-echo)))
-      (if help (message "%s" help)))))
-
-(add-hook 'post-command-hook 'my-flymake-show-help)
-(add-hook 'find-file-hook 'flymake-find-file-hook)
+;(add-to-list 'load-path
+;              "~/.emacs.d/plugins/web-mode")
+;(require 'web-mode)
+;(add-to-list 'auto-mode-alist '("\\.html$" . web-mode))
 
 ;; django template mode
 ;; (autoload 'django-html-mumamo-mode "~/.emacs.d/nxhtml/autostart.el")
 ;; (setq auto-mode-alist
-;;      (append '(("\\.html?$" . django-html-mumamo-mode)) auto-mode-alist))
+;;       (append '(("\\.html?$" . django-html-mumamo-mode)) auto-mode-alist))
 ;; (setq mumamo-background-colors nil) 
 ;; (add-to-list 'auto-mode-alist '("\\.html$" . django-html-mumamo-mode))
 
-(require 'mercurial)
+(add-hook 'after-init-hook #'global-flycheck-mode)
+
+;(require 'mercurial)
 (require 'tramp)
+
+(defvar yafolding-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "<C-S-return>") #'yafolding-hide-parent-element)
+    (define-key map (kbd "<C-M-return>") #'yafolding-toggle-all)
+    (define-key map (kbd "<C-return>") #'yafolding-toggle-element)
+    map))
