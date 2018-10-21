@@ -1,37 +1,33 @@
+(load-theme 'deeper-blue t)
+
 ;;; install required packages
 (require 'package)
-(add-to-list 'package-archives
-             '("marmalade" . "http://marmalade-repo.org/packages/") t)
-(add-to-list 'package-archives
-             '("melpa" . "http://melpa.org/packages/") t)
-(add-to-list 'package-archives 
-             '("org" . "http://orgmode.org/elpa/") t)
+
+(setq package-archives '(("elpa" . "http://tromey.com/elpa/")
+                         ("gnu" . "http://elpa.gnu.org/packages/")
+                         ("marmalade" . "https://marmalade-repo.org/packages/")
+                         ("org" . "http://orgmode.org/elpa/")))
 (package-initialize)
 
-(when (not package-archive-contents)
+;(unless (not package-archive-contents)
+(or (file-exists-p package-user-dir)
   (package-refresh-contents))
 
-(defvar packages-list '(js2-mode
-                        ; json-mode
-                        ; web-mode
-                        django-mode
-                        flycheck
-                        auto-complete
-                        markdown-mode
-                        yasnippet
-                        yafolding)
-  "A list of packages to install at launch (if needed).")
+(setq package-list '(js2-mode
+                     django-mode
+                     flycheck
+                     auto-complete
+                     markdown-mode))
 
-(dolist (p packages-list)
-  (when (not (package-installed-p p))
-    (package-install p)))
-
+(dolist (package package-list)
+  (unless (package-installed-p package)
+    (package-install package)))
 ;;; 
 (custom-set-variables
-  ;; custom-set-variables was added by Custom.
-  ;; If you edit it by hand, you could mess it up, so be careful.
-  ;; Your init file should contain only one such instance.
-  ;; If there is more than one, they won't work right.
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
  '(case-fold-search t)
  '(column-number-mode t)
  '(cua-mode t nil (cua-base))
@@ -39,16 +35,18 @@
  '(font-lock-global-modes t)
  '(font-lock-maximum-decoration t)
  '(global-font-lock-mode t nil (font-lock))
+ '(package-selected-packages
+   (quote
+    (ido-mode yasnippet yafolding virtualenvwrapper markdown-mode js2-mode jedi flycheck django-mode)))
+ '(python-check-command "pycheckers")
  '(query-user-mail-address nil)
  '(show-paren-mode t)
- '(text-mode-hook (quote (text-mode-hook-identify)))
- '(python-check-command "pycheckers")
-)
+ '(text-mode-hook (quote (text-mode-hook-identify))))
 (custom-set-faces
-  ;; custom-set-faces was added by Custom.
-  ;; If you edit it by hand, you could mess it up, so be careful.
-  ;; Your init file should contain only one such instance.
-  ;; If there is more than one, they won't work right.
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
  )
 (setq-default indent-tabs-mode nil)
 (setq display-warning-minimum-level 'error
@@ -57,7 +55,7 @@
 (setq fill-column 80)
 (setq-default truncate-lines 1)
 
-(setq python-shell-interpreter "/usr/local/lib/python3.4")
+(setq python-shell-interpreter "/usr/local/lib/python3.5")
 
 (put 'upcase-region 'disabled nil)
 
@@ -98,8 +96,8 @@
 (ido-mode t)
 (add-to-list 'ido-ignore-files "\\.pyc")
 
-(add-to-list 'load-path
-             "~/.emacs.d/plugins")
+;; (add-to-list 'load-path
+;;              "~/.emacs.d/plugins")
 
 (require 'auto-complete-config)
 (add-to-list 'ac-dictionary-directories "~/.emacs.d/plugins//ac-dict")
@@ -111,25 +109,6 @@
 (autoload 'js2-mode "js2-mode" nil t)
 (add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
 
-(add-to-list 'load-path
-              "~/.emacs.d/plugins/yasnippet")
-(require 'yasnippet)
-(yas-global-mode 1)
-
-(yas/load-directory "~/.emacs.d/plugins/snippets")
-
-;;;;;;;;;;;;;;;;;;;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(add-to-list 'load-path
-              "~/.emacs.d/plugins/django-mode")
-;(require 'django-html-mode)
-(require 'django-mode)
-(yas/load-directory "~/.emacs.d/plugins/django-mode/snippets")
-;(add-to-list 'auto-mode-alist '("\\.html$" . django-html-mode))
-
-(add-hook 'html-helper-mode-hook
-          '(lambda ()
-             (yas/minor-mode-on))) 
-
 ; (require 'json-mode)
 
 ;(load-library "~/.emacs.d/init_python")
@@ -138,21 +117,25 @@
 ;(require 'web-mode)
 ;(add-to-list 'auto-mode-alist '("\\.html$" . web-mode))
 
-;; django template mode
-;; (autoload 'django-html-mumamo-mode "~/.emacs.d/nxhtml/autostart.el")
-;; (setq auto-mode-alist
-;;       (append '(("\\.html?$" . django-html-mumamo-mode)) auto-mode-alist))
-;; (setq mumamo-background-colors nil) 
-;; (add-to-list 'auto-mode-alist '("\\.html$" . django-html-mumamo-mode))
-
 (add-hook 'after-init-hook #'global-flycheck-mode)
 
-;(require 'mercurial)
-(require 'tramp)
+;; ;(require 'mercurial)
+;; (require 'tramp)
 
-(defvar yafolding-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "<C-S-return>") #'yafolding-hide-parent-element)
-    (define-key map (kbd "<C-M-return>") #'yafolding-toggle-all)
-    (define-key map (kbd "<C-return>") #'yafolding-toggle-element)
-    map))
+; use < and > when a region is selected to indent by 4 space exactly (to avoid crappy auto indent)
+(defun my-indent-region (N)
+  (interactive "p")
+  (if (use-region-p)
+      (progn (indent-rigidly (region-beginning) (region-end) (* N 4))
+             (setq deactivate-mark nil))
+    (self-insert-command N)))
+
+(defun my-unindent-region (N)
+  (interactive "p")
+  (if (use-region-p)
+      (progn (indent-rigidly (region-beginning) (region-end) (* N -4))
+             (setq deactivate-mark nil))
+    (self-insert-command N)))
+
+(global-set-key ">" 'my-indent-region)
+(global-set-key "<" 'my-unindent-region)
